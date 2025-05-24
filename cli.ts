@@ -1,0 +1,161 @@
+import { parseArgs } from 'node:util'
+import dedent from 'dedent'
+import { createReadStream, existsSync, readFileSync } from 'node:fs'
+import { SshpkSigner } from '@data.pub/did-sshpk'
+import sshpk from "sshpk"
+import type { ISigner } from "./types.ts"
+import { StorageClient } from '@wallet.storage/fetch-client'
+import { blob, buffer, text } from 'node:stream/consumers'
+
+class WasCli {
+  async invoke(...argv: string[]) {
+    const { values, positionals } = parseArgs({
+      args: argv.slice(0, 3),
+      options: {
+        help: {
+          type: 'boolean',
+          short: 'h',
+          default: false,
+        },
+        version: {
+          type: 'boolean',
+          short: 'v',
+          default: false,
+        },
+      },
+      allowPositionals: true,
+    })
+
+    if (values.help) {
+      console.log(this.help)
+    }
+
+    await this.up({ args: argv.slice(2), values })
+
+    // if ( ! command) {
+    //   console.error('Please provide a command to run.', '\n')
+    //   console.error(this.help)
+    // }
+  }
+
+  async up(options: {
+    args: string[]
+    values: {}
+    env?: Record<string, string>
+  }) {
+    const { args } = options
+    const { values } = options
+    const upArgs = parseArgs({
+      args,
+      options: {
+        help: {
+          type: 'boolean',
+          short: 'h',
+          default: false,
+        },
+        'content-type': {
+          type: 'string',
+          short: 't',
+        },
+        // path to ssh key
+        identity: {
+          type: 'string',
+          short: 'i',
+        },
+        verbose: {
+          type: 'boolean',
+          short: 'v',
+        }
+      },
+      allowPositionals: true,
+    })
+
+    const pathToKey = upArgs.values.identity
+    const pathToKeyExists = typeof pathToKey === "string" && existsSync(pathToKey.toString())
+    let signer: ISigner | undefined
+    if (pathToKeyExists) {
+      const keyBuffer = readFileSync(pathToKey)
+      const privateKey = sshpk.parsePrivateKey(keyBuffer, undefined, {
+        passphrase: options.env?.DATAPUB_SSH_PASSPHRASE
+      })
+      signer = await SshpkSigner.fromPrivateKey(privateKey)
+    }
+
+    if (upArgs.values.verbose) console.debug('signer', signer?.id)
+
+    const [fromPath, upTo] = upArgs.positionals
+
+    if ( ! fromPath) {
+      console.debug(`Please provide a path to the file to upload.`, '\n')
+      console.debug(this.help)
+      throw new Error(`Please provide a path to the file to upload.`)
+    }
+    if ( ! upTo) {
+      console.debug(`Please provide a URL to PUT the file to.`, '\n')
+      console.debug(this.help)
+      throw new Error(`Please provide a URL to PUT the file to.`)
+    }
+
+    // URL to PUT to
+    const upToUrl = new URL(upTo)
+
+    // WAS Storage Client we will use to PUT the local file to upToUrl
+    const storage = new StorageClient(new URL(upToUrl.origin))
+
+    // result of parsing /space/:space/:name{.*}
+    class ParsedSpaceResourcePath {
+      space: string
+      name: string
+      static fromUrl(url: URL) {
+        const parts = url.pathname.split('/')
+        const spaceId = parts[2]
+        const name = parts.slice(3).join('/')
+        const parsed = new ParsedSpaceResourcePath
+        parsed.space = spaceId
+        parsed.name = name
+        return parsed
+      }
+    }
+    const parsedSpaceResourcePath = ParsedSpaceResourcePath.fromUrl(upToUrl)
+    const spaceUrnUuid = `urn:uuid:${parsedSpaceResourcePath.space}` as const
+    const upToResource = storage.space(spaceUrnUuid).resource(parsedSpaceResourcePath.name)
+
+    const fromPathStream = createReadStream(fromPath)
+    const fromPathBlob = new Blob([await buffer(fromPathStream)])
+    const responseToPut = await upToResource.put(fromPathBlob, { signer })
+    if ( ! responseToPut.ok) {
+      throw new Error(`response to PUT is not ok`, {
+        cause: {
+          response: responseToPut,
+        }
+      })
+    }
+
+    console.debug(new URL(upToResource.path, upToUrl.origin).toString())
+
+    const responseText = await responseToPut.blob().then(b => b.text())
+    if (responseText) console.debug(responseText)
+  }
+
+  get help() {
+    // http://docopt.org/
+    return dedent`
+      # wasup
+
+      A tool that uploads to Wallet Attached Storage
+
+      Usage:
+        wasup <path/to/file> <space-url> [--identity ~/.ssh/space-controller-key]
+        wasup -h | --help
+        wasup --version
+
+      Options:
+        -h --help     Show this screen.
+        --version     Show version.
+    `
+  }
+}
+
+export default async function cli(...argv: string[]) {
+  await new WasCli().invoke(...argv)
+}

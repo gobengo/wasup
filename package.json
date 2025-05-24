@@ -1,0 +1,23 @@
+{
+  "name": "@wallet.storage/wasup",
+  "version": "0.0.0",
+  "description": "wasup command line tool for Wallet Attached Storage",
+  "license": "UNLICENSED",
+  "author": "bengo.is",
+  "type": "module",
+  "main": "index.ts",
+  "scripts": {
+    "start": "node --no-warnings ./start.ts",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "@data.pub/did-sshpk": "^0.0.5",
+    "@wallet.storage/fetch-client": "^1.1.3",
+    "dedent": "^1.6.0",
+    "sshpk": "^1.18.0",
+    "tsx": "^4.19.4"
+  },
+  "bin": {
+    "wasup": "./bin/wasup"
+  }
+}
