@@ -28,14 +28,9 @@ class WasCli {
 
     if (values.help) {
       console.log(this.help)
+    } else {
+      await this.up({ args: argv.slice(2), values })
     }
-
-    await this.up({ args: argv.slice(2), values })
-
-    // if ( ! command) {
-    //   console.error('Please provide a command to run.', '\n')
-    //   console.error(this.help)
-    // }
   }
 
   async up(options: {
@@ -147,11 +142,11 @@ class WasCli {
       Usage:
         wasup <path/to/file> <space-url> [--identity ~/.ssh/space-controller-key]
         wasup -h | --help
-        wasup --version
 
       Options:
         -h --help     Show this screen.
-        --version     Show version.
+        -i --identity Path to the Ed25519 SSH key to use for authentication.
+                      Generate an identity with \`ssh-keygen -t ed25519\`.
     `
   }
 }
