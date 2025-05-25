@@ -2,8 +2,8 @@
 set -e # exit on error
 
 IDENTITY="$HOME/.ssh/id_ed25519_wasup_examples"
-SPACE_UUID="$(uuidgen | tr "[:upper:]" "[:lower:]")" # generate a random UUID
-WAS=https://storage.bengo.is
+SPACE_UUID="${SPACE_UUID:-"$(uuidgen | tr "[:upper:]" "[:lower:]")"}" # generate a random UUID
+WAS="${WAS:-https://storage.bengo.is}"
 SPACE_PATH=/space/$SPACE_UUID
 SPACE="$WAS$SPACE_PATH"
 
@@ -60,3 +60,5 @@ wasup --content-type text/html /dev/stdin "$SPACE"/ -i "$IDENTITY" <<EOF
 <h1>wasup/examples/acl-simple.sh</h1>
 <p>This is a simple example of something uploaded from wasup</p>
 EOF
+
+curl $SPACE/

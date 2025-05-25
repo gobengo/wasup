@@ -6,7 +6,8 @@ import sshpk from "sshpk"
 import type { ISigner } from "./types.ts"
 import { StorageClient } from '@wallet.storage/fetch-client'
 import { blob, buffer, text } from 'node:stream/consumers'
-import { IResourceInSpace, ISpace } from '@wallet.storage/fetch-client/types'
+import type { IResourceInSpace, ISpace } from '@wallet.storage/fetch-client/types'
+import { detectFileMime } from 'mime-detect'
 
 class WasCli {
   async invoke(...argv: string[]) {
@@ -70,7 +71,7 @@ class WasCli {
       allowPositionals: true,
     })
 
-    const contentType = upArgs.values['content-type'] ?? upArgs.values['ct']
+    const explicitContentType = upArgs.values['content-type'] ?? upArgs.values['ct']
     const pathToKey = upArgs.values.identity
     const pathToKeyExists = typeof pathToKey === "string" && existsSync(pathToKey.toString())
     let signer: ISigner | undefined
@@ -125,6 +126,7 @@ class WasCli {
     const upToSpace = storage.space(spaceUrnUuid)
 
     const fromPathStream = createReadStream(fromPath)
+    const contentType = explicitContentType ?? await detectFileMime(fromPath)
     const fromPathBlob = new Blob([await buffer(fromPathStream)], { type: contentType})
 
     let resource: IResourceInSpace | ISpace
