@@ -183,13 +183,19 @@ class WasFetchCli {
       Wallet Attached Storage Fetcher
 
       Usage:
-        wasfetch <url> [--identity ~/.ssh/space-controller-key]
-        wasup -h | --help
+        wasfetch [--identity ~/.ssh/space-controller-key] <url> [--method GET]
+        wasfetch [--identity ~/.ssh/space-controller-key] <url> --method POST   --body <file> [--content-type <mime-type>]
+        wasfetch [--identity ~/.ssh/space-controller-key] <url> --method PUT    --body <file> [--content-type <mime-type>]
+        wasfetch [--identity ~/.ssh/space-controller-key] <url> --method DELETE
+        wasfetch -h | --help
 
       Options:
-        -h --help     Show this screen.
-        -i --identity Path to the Ed25519 SSH key to use for authentication.
-                      Generate an identity with \`ssh-keygen -t ed25519\`.
+        -b --body           Path to the file to use as request body in POST, PUT requests.
+        -ct --content-type  Content type of the request body.
+        -h --help           Show this screen.
+        -i --identity       Path to the Ed25519 SSH key to use for authentication.
+                            Generate an identity with \`ssh-keygen -t ed25519\`.
+        -m --method         HTTP method to use. [default: GET]
     `
   }
 }
