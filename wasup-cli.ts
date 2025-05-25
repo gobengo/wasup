@@ -90,12 +90,12 @@ class WasCli {
     if ( ! fromPath) {
       console.debug(`Please provide a path to the file to upload.`, '\n')
       console.debug(this.help)
-      throw new Error(`Please provide a path to the file to upload.`)
+      return 1
     }
     if ( ! upTo) {
       console.debug(`Please provide a URL to PUT the file to.`, '\n')
       console.debug(this.help)
-      throw new Error(`Please provide a URL to PUT the file to.`)
+      return 1
     }
 
     // URL to PUT to
