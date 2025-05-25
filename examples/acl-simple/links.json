@@ -1,0 +1,12 @@
+{
+  "linkset": [                                                             
+    {                                                         
+      "anchor": "/space/1eb0be6a-94c6-496e-8efa-1f1487fdc7a0/",
+      "acl": [
+        {            
+          "href": "/space/1eb0be6a-94c6-496e-8efa-1f1487fdc7a0/acl"
+        }
+      ]
+    }
+  ]
+}

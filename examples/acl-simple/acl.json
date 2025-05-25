@@ -1,0 +1,19 @@
+{
+  "authorization": [
+    {
+      "agentClass": "http://xmlns.com/foaf/0.1/Agent",         
+      "accessTo": [
+        "/space/1eb0be6a-94c6-496e-8efa-1f1487fdc7a0/"
+      ],                                                           
+      "mode": [
+        "Read"
+      ],
+      "@type": [
+        "http://www.w3.org/ns/auth/acl#Authorization"
+      ]
+    }             
+  ],
+  "@context": [
+    "http://www.w3.org/ns/auth/acl#"
+  ]
+}

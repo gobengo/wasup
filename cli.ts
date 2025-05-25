@@ -6,6 +6,7 @@ import sshpk from "sshpk"
 import type { ISigner } from "./types.ts"
 import { StorageClient } from '@wallet.storage/fetch-client'
 import { blob, buffer, text } from 'node:stream/consumers'
+import { IResourceInSpace, ISpace } from '@wallet.storage/fetch-client/types'
 
 class WasCli {
   async invoke(...argv: string[]) {
@@ -23,6 +24,7 @@ class WasCli {
           default: false,
         },
       },
+      strict: false,
       allowPositionals: true,
     })
 
@@ -48,9 +50,12 @@ class WasCli {
           short: 'h',
           default: false,
         },
+        // abbreviation for --content-type
+        'ct': {
+          type: 'string',
+        },
         'content-type': {
           type: 'string',
-          short: 't',
         },
         // path to ssh key
         identity: {
@@ -65,6 +70,7 @@ class WasCli {
       allowPositionals: true,
     })
 
+    const contentType = upArgs.values['content-type'] ?? upArgs.values['ct']
     const pathToKey = upArgs.values.identity
     const pathToKeyExists = typeof pathToKey === "string" && existsSync(pathToKey.toString())
     let signer: ISigner | undefined
@@ -100,35 +106,50 @@ class WasCli {
     // result of parsing /space/:space/:name{.*}
     class ParsedSpaceResourcePath {
       space: string
-      name: string
+      name?: string
       static fromUrl(url: URL) {
-        const parts = url.pathname.split('/')
-        const spaceId = parts[2]
-        const name = parts.slice(3).join('/')
+        const pattern = /\/space\/(?<space>[^/]+)(\/(?<name>.*))?/
+        const pathname = url.pathname
+        const match = url.pathname.match(pattern)
+        const space = match?.groups?.space
+        if ( ! space) throw new Error(`No space id found in URL: ${url}`)
+        const name = match?.groups?.name
         const parsed = new ParsedSpaceResourcePath
-        parsed.space = spaceId
         parsed.name = name
+        parsed.space = space
         return parsed
       }
     }
     const parsedSpaceResourcePath = ParsedSpaceResourcePath.fromUrl(upToUrl)
     const spaceUrnUuid = `urn:uuid:${parsedSpaceResourcePath.space}` as const
-    const upToResource = storage.space(spaceUrnUuid).resource(parsedSpaceResourcePath.name)
+    const upToSpace = storage.space(spaceUrnUuid)
 
     const fromPathStream = createReadStream(fromPath)
-    const fromPathBlob = new Blob([await buffer(fromPathStream)])
-    const responseToPut = await upToResource.put(fromPathBlob, { signer })
+    const fromPathBlob = new Blob([await buffer(fromPathStream)], { type: contentType})
+
+    let resource: IResourceInSpace | ISpace
+    if (typeof parsedSpaceResourcePath.name === 'undefined') {
+      // just upload the space
+      resource = upToSpace
+    } else {
+      // upload a resource within the space
+      resource = upToSpace.resource(parsedSpaceResourcePath.name)
+    }
+
+    const responseToPut = await resource.put(fromPathBlob, { signer })
     if ( ! responseToPut.ok) {
       throw new Error(`response to PUT is not ok`, {
         cause: {
           response: responseToPut,
+          status: responseToPut.status,
+          bodyText: await responseToPut.blob?.().then(b => b.text())
         }
       })
     }
 
-    console.debug(new URL(upToResource.path, upToUrl.origin).toString())
+    console.debug(upToUrl.toString())
 
-    const responseText = await responseToPut.blob().then(b => b.text())
+    const responseText = await responseToPut.blob?.().then(b => b.text())
     if (responseText) console.debug(responseText)
   }
 
