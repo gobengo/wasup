@@ -1,6 +1,6 @@
-# was
+# `wasup`
 
-Wallet Attached Storage Command Line Interface
+[Wallet Attached Storage](https://wallet.storage/) Uploader
 
 ## Usage
 
