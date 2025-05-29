@@ -84,21 +84,29 @@ didJson=$(wasup --content-type application/json /dev/stdin "$SPACE/did.json" -i 
 EOF
 )
 
+resolverUrl="https://dev.uniresolver.io/#$SPACE_DID"
+
 # / - HTML Homepage
-home=$(wasup --content-type text/html /dev/stdin "$SPACE"/ -i "$IDENTITY" <<EOF
+SPACE_HOME=$(wasup --content-type text/html /dev/stdin "$SPACE"/ -i "$IDENTITY" <<EOF
 <!doctype html>
 <h1>wasup/examples/did-simple.sh</h1>
 <h2>DID</h2>
-My DID is $SPACE_DID.
 <p>
+  My DID is
+  <a href="$resolverUrl">
+  $SPACE_DID
+  </a>.
+</p>
 <p>
   My DID Document is at
   <a href="did.json">
-    did.json.
-  </a>
+    did.json
+  </a>.
 </p>
 EOF
 )
 
 echo "$SPACE_DID"
-1>&2 echo resolve at https://dev.uniresolver.io/#$SPACE_DID
+1>&2 echo resolve at "$resolverUrl"
+
+1>&2 echo home page "$SPACE_HOME"
