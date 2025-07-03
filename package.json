@@ -17,7 +17,8 @@
     "dedent": "^1.6.0",
     "mime-detect": "^1.3.0",
     "sshpk": "^1.18.0",
-    "tsx": "^4.19.4"
+    "tsx": "^4.19.4",
+    "wasupdoc": "^0.0.4"
   },
   "bin": {
     "wasup": "bin/wasup.js",
