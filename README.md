@@ -29,7 +29,7 @@ wasup ./README.md $WAS/space/$SPACE/README.md --identity ~/.ssh/id_ed25519_was_t
 
 ### Upload a space, linkset, ACL, and HTML home page
 
-Read, configure, then run [./examples/acl-publicCanRead.sh](./examples/acl-simple.sh) for a simple example of a public-data configuration.
+Read, configure, then run [./examples/acl-PublicCanRead.sh](./examples/acl-PublicCanRead.sh) for a simple example of a public-data configuration.
 This example will, if you provide a valid path to a key already authorized by the provided WAS server, give your current local key authorization to delete or update the uploaded file. 
 
 Read, configure, then run [./examples/acl-simple.sh](./examples/acl-simple.sh) for a simple example of private-data hosting requiring an Authorization header to access.
