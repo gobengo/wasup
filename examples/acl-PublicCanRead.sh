@@ -43,7 +43,7 @@ EOF
 npx wasup --content-type text/html /dev/stdin "$SPACE"/ -i "$IDENTITY" <<EOF
 <!doctype html>
 <h1>wasup/examples/acl-PublicCanRead.sh</h1>
-<p>This is an example of a resource covered by an ACL of type PubliCanRead.</p>
+<p>This is an example of a resource covered by an ACL of type PublicCanRead.</p>
 EOF
 
 curl $SPACE/
